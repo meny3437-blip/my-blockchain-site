@@ -14,6 +14,18 @@ main{max-width:960px;margin:auto;padding:72px 24px}nav{display:flex;justify-cont
 h1{font-size:clamp(42px,8vw,76px);line-height:1.04;letter-spacing:-.05em;margin:22px 0}h1 span{color:var(--mint)}.lead{max-width:650px;color:var(--muted);font-size:19px}
 .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:16px;margin:54px 0}.card{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:22px}.card h2{font-size:17px;margin:0 0 8px}.card p{color:var(--muted);margin:0;font-size:14px}
 .notice{border-left:3px solid var(--mint);padding:16px 20px;background:#111b16;border-radius:0 12px 12px 0;color:var(--muted)}a{color:var(--mint)}footer{margin-top:70px;border-top:1px solid var(--line);padding-top:22px;color:var(--muted);font-size:13px}
+
+.wallet{background:linear-gradient(145deg,#14251c,#101713);border:1px solid #355c46;border-radius:22px;padding:26px;margin:38px 0}
+.wallet-head{display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap}
+.wallet-head h2{margin:0;font-size:22px}.test-pill{font-size:12px;color:#8ee6b2;border:1px solid #355c46;padding:4px 10px;border-radius:99px}
+.balance-label{color:var(--muted);font-size:13px;margin:28px 0 4px}.balance{font-size:clamp(32px,6vw,48px);font-weight:750;letter-spacing:-.04em}.balance small{font-size:16px;color:var(--mint);letter-spacing:0}
+.wallet-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:20px}
+.wallet button{border:1px solid #426d53;background:#8ee6b2;color:#0b100e;border-radius:11px;padding:11px 16px;font:600 14px system-ui;cursor:pointer}
+.wallet button.secondary{background:transparent;color:var(--text);border-color:var(--line)}
+.address{margin-top:22px;padding:14px;background:#0b100e;border:1px solid var(--line);border-radius:12px;overflow-wrap:anywhere;font:13px ui-monospace,monospace;color:var(--mint)}
+.wallet small.note{display:block;color:var(--muted);margin-top:12px;font-size:12px}
+.tx{border-top:1px solid var(--line);margin-top:24px;padding-top:18px;color:var(--muted);font-size:14px}
+@media(max-width:560px){main{padding:36px 18px}nav{margin-bottom:58px}}
 </style>
 </head>
 <body><main>
@@ -21,11 +33,47 @@ h1{font-size:clamp(42px,8vw,76px);line-height:1.04;letter-spacing:-.05em;margin:
 <span class="tag">Проєкт у розробці</span>
 <h1>Власний блокчейн.<br><span>Прозорі правила.</span></h1>
 <p class="lead">My Blockchain — експериментальна мережа MyCoin. Ми готуємо інфраструктуру, перевіряємо механізми безпеки та документуємо наступні етапи запуску.</p>
-<section class="grid">
+
+<section class="wallet" aria-labelledby="wallet-title">
+ <div class="wallet-head"><h2 id="wallet-title">MYC Wallet</h2><span class="test-pill">DEMO · TEST MODE</span></div>
+ <div class="balance-label">Демонстраційний баланс</div>
+ <div class="balance">0.000000 <small>MYC</small></div>
+ <div class="wallet-actions">
+  <button id="create-wallet" type="button">Створити тестову адресу</button>
+  <button id="copy-wallet" class="secondary" type="button" disabled>Копіювати адресу</button>
+ </div>
+ <div class="address" id="wallet-address">Адресу ще не створено</div>
+ <small class="note">Це лише демонстраційний ідентифікатор у браузері, не криптографічний гаманець. Приватні ключі не створюються і не зберігаються.</small>
+ <div class="tx"><strong>Історія операцій</strong><p id="tx-empty">Операцій поки немає. Тестові перекази не підтримуються.</p></div>
+</section>
+\n<section class="grid">
 <article class="card"><h2>MYC · MyCoin</h2><p>Базова одиниця мережі — amu. Специфікація токена описана в репозиторії проєкту.</p></article>
 <article class="card"><h2>Bitcoin Regtest</h2><p>Інтеграція з Bitcoin наразі призначена лише для локального тестування.</p></article>
 <article class="card"><h2>Міст вимкнено</h2><p>BTC-депозити не створюють MYC. Механізм розрахунку не активований.</p></article>
 </section>
 <div class="notice"><strong>Увага:</strong> це не mainnet і не діючий сервіс майнінгу. Не надсилайте сюди реальні BTC чи інші кошти. Ця сторінка не генерує гаманці та не зберігає приватні ключі.</div>
 <footer>© My Blockchain · <a href="https://github.com/meny3437-blip/my-blockchain">Основний репозиторій</a> (приватний)</footer>
-</main></body></html>
+</main>
+<script>
+(()=>{
+ const make=document.getElementById('create-wallet');
+ const copy=document.getElementById('copy-wallet');
+ const out=document.getElementById('wallet-address');
+ let address='';
+ make.addEventListener('click',()=>{
+   const bytes=new Uint8Array(8);
+   if(window.crypto && crypto.getRandomValues) crypto.getRandomValues(bytes);
+   else for(let i=0;i<bytes.length;i++) bytes[i]=Math.floor(Math.random()*256);
+   address='MYC-TEST-'+Array.from(bytes,b=>b.toString(16).padStart(2,'0')).join('').toUpperCase();
+   out.textContent=address;
+   copy.disabled=false;
+   make.textContent='Створити іншу тестову адресу';
+ });
+ copy.addEventListener('click',async()=>{
+   if(!address)return;
+   try{await navigator.clipboard.writeText(address);copy.textContent='Скопійовано';}
+   catch(e){copy.textContent='Не вдалося скопіювати';}
+ });
+})();
+</script>
+</body></html>
